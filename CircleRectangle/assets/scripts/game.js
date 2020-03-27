@@ -24,7 +24,8 @@ cc.Class({
             type: cc.Node
         },
         gameOverNode: cc.Node,
-        scoreLabel: cc.Label
+        scoreLabel: cc.Label,
+        tipsNode: cc.Node
     },
 
     // LIFE-CYCLE CALLBACKS:
@@ -46,19 +47,36 @@ cc.Class({
         }, this.speed);
 
         this.node.on("touchstart", this.touchStart, this)
+        if (!localStorage.getItem('isTipshow')) {
+            this.tipsNode.active = true;
+        } else {
+            this.tipsNode.active = false;
+        }
+    },
+    isee() {
+        localStorage.setItem('isTipshow', false)
+        this.tipsNode.active = false;
+    },
+    doAnimate(e) {
+
+        let node = this.loveNodes[this.loveNodes.length - 1]
+
+        node.runAction(cc.sequence(cc.moveTo(1, cc.v2(node.x, -this.node.height)), cc.callFunc(() => {
+            node.active = false;
+            this.loveNodes.splice(this.loveNodes.length - 1, 1)
+            if (this.loveNodes.length <= 0) {
+                this.gameOver()
+            }
+        })))
     },
     touchStart(e) {
         console.log(e.getLocation().x)
-        if (e.getLocation().x > this.node.width / 2) {
+        if (e.getLocation().x > 720 / 2) {
             //右边 圆
 
             if (this.getFirstType() == NAME_FOR_RECTANGLE) {
                 if (this.loveNodes.length > 0) {
-                    this.loveNodes[this.loveNodes.length - 1].active = false;
-                    this.loveNodes.splice(this.loveNodes.length - 1, 1)
-                    if (this.loveNodes.length <= 0) {
-                        this.gameOver()
-                    }
+                    this.doAnimate(e)
                 }
                 return
             }
@@ -82,16 +100,14 @@ cc.Class({
                 }
 
             }
-        } else if (e.getLocation().x <= this.node.width / 2) {
+        } else if (e.getLocation().x <= 720 / 2) {
             //左边 方
 
             if (this.getFirstType() == NAME_FOR_CIRCLE) {
                 if (this.loveNodes.length > 0) {
-                    this.loveNodes[this.loveNodes.length - 1].active = false;
-                    this.loveNodes.splice(this.loveNodes.length - 1, 1)
-                    if (this.loveNodes.length <= 0) {
-                        this.gameOver()
-                    }
+                    this.doAnimate(e)
+
+
                 }
                 return
             }
@@ -156,33 +172,41 @@ cc.Class({
         this.boomNode.setPosition(pos)
         let particle = this.boomNode.getComponent(cc.ParticleSystem)
         if (color != undefined) {
-            particle.startColor = particle.endColor = color;
+            let cccolor = cc.Color.WHITE
+
+            particle.startColor = particle.endColor = cccolor.fromHEX(color);
+        } else {
+            particle.startColor = particle.endColor = cc.Color.WHITE
         }
         particle.resetSystem();
     },
     getOneCircle() {
         let random = Math.random() > 0.5 ? 1 : -1
-        let circle = cc.instantiate(this.circlePrefab)
+        if (this.circlePrefab) {
+            let circle = cc.instantiate(this.circlePrefab)
 
-        circle.x = Math.random() * random * (this.node.width - circle.width) / 2;
-        circle.y = this.node.height / 2 + circle.height / 2;
-        this.node.addChild(circle)
-        this.nodes.push(circle)
+            circle.x = Math.random() * random * (720 - circle.width) / 2;
+            circle.y = 1280 / 2 + circle.height / 2;
+            this.node.addChild(circle)
+            this.nodes.push(circle)
 
-        this.doUpdateSpeed();
+            this.doUpdateSpeed();
+        }
 
     },
 
     getOneRec() {
         let random = Math.random() > 0.5 ? 1 : -1
-        let rec = cc.instantiate(this.recPrefab)
+        if (this.recPrefab) {
+            let rec = cc.instantiate(this.recPrefab)
 
-        rec.x = Math.random() * random * (this.node.width - rec.width) / 2;
+            rec.x = Math.random() * random * (720 - rec.width) / 2;
 
-        rec.y = this.node.height / 2 + rec.height / 2;
-        this.node.addChild(rec)
-        this.nodes.push(rec)
-        this.doUpdateSpeed();
+            rec.y = 1280 / 2 + rec.height / 2;
+            this.node.addChild(rec)
+            this.nodes.push(rec)
+            this.doUpdateSpeed();
+        }
     },
 
     doUpdateSpeed() {
@@ -214,7 +238,7 @@ cc.Class({
             if (element.name == NAME_FOR_CIRCLE) {
 
                 this.getNodeIsAlive(element, NAME_FOR_CIRCLE, () => {
-                    if (element.y >= this.node.height / 2) {
+                    if (element.y >= 1280 / 2) {
                         console.log(element.y)
                         this.gameOver()
                     }
@@ -224,7 +248,7 @@ cc.Class({
             } else {
 
                 this.getNodeIsAlive(element, NAME_FOR_RECTANGLE, () => {
-                    if (element.y >= this.node.height / 2) {
+                    if (element.y >= 1280 / 2) {
                         console.log(element.y)
                         this.gameOver()
                     }
@@ -245,6 +269,11 @@ cc.Class({
         }
 
         this.gameOverNode.active = true;
+        let gameoverComp = this.gameOverNode.getComponent("gameover")
+        if (gameoverComp == null) {
+            console.log("找不到脚本")
+            return
+        }
         this.gameOverNode.getComponent("gameover").setScoreLabel(this.score)
         // clearInterval(this.factory)
         // this.factory = null;
