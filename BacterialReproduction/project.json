@@ -1,0 +1,8 @@
+{
+  "engine": "cocos-creator-js",
+  "packages": "packages",
+  "name": "BacterialReproduction",
+  "uuid": "c8daad76-f0ad-47cb-8b1b-a59472a0dafa",
+  "version": "2.3.3-rc.3",
+  "id": "cff15593-0d7c-4829-82eb-2892ffb1f96a"
+}
