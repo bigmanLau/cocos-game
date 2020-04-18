@@ -1,0 +1,8 @@
+{
+  "engine": "cocos-creator-js",
+  "packages": "packages",
+  "name": "DefenseGame",
+  "uuid": "0e3b5b49-e68d-4ba8-a774-323511f0e087",
+  "version": "2.3.3-rc.3",
+  "id": "b1428b37-0d64-43f5-997c-d02883417fd1"
+}
